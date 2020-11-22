@@ -1,0 +1,12 @@
+{{> header}}
+<form method="POST" action="{{ loginLink }}" autofill="on">
+    <input type="text" placeholder="first name" name="firstName" aria-label="first name"/>
+    <input type="text" placeholder="last name" name="lastName" aria-label="last name"/>
+    <input type="email" placeholder="email" name="email" aria-label="email"/>
+    <input type="password" placeholder="password" name="password" aria-label="email" />
+    <input type="password" placeholder="confirm password" name="confirmPassword" aria-label="email" />
+    <input type="date" placeholder="birth date" name="birthDate" aria-label="birth date"/>
+    <input type="phone" placeholder="cell phone" name="phone" aria-label="cell number"/>
+    <input type="submit" value="Register" />
+</form>
+{{> footer}}
