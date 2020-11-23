@@ -1,5 +1,6 @@
 import express from "express";
 import * as dotenv from "dotenv";
+import { User } from "./lib/models/User";
 dotenv.config();
 
 (async () => {
@@ -21,6 +22,9 @@ dotenv.config();
     app.set("views", __dirname + "/views");
 
     app.get("/", (_, res) => {
+        const user = new User();
+        user.firstName = "Noah";
+        user.getKeys();
         const data = {
             permalink,
         };
