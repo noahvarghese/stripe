@@ -6,48 +6,78 @@
 
 import sqlite3 from "sqlite3";
 import fs from "fs";
+import { Models } from "../conf/Models";
 import * as dotenv from "dotenv";
+import AbstractModel from "./models/AbstractModel";
 
 dotenv.config({ path: __dirname + "/../.env" });
 
 export class Database {
     dbFile: string;
 
-    constructor(init = false) {
-        // Load environment variables in
-        dotenv.config();
-
-        // get database path from environment vaiables;
-        this.dbFile = process.env.PATH_TO_DB!;
-
+    constructor(init = false, file = "api.db", path = "../") {
+        this.dbFile = path + file;
         if (init) {
-            // Check if database file has been created
-            try {
-                if (fs.existsSync(this.dbFile)) {
-                    // Delete database file so we have a fresh start each time
-                    fs.unlinkSync(this.dbFile);
-                    this.createDB();
-                }
-            } catch (err) {
-                console.log(err);
-            }
+            this.createFile();
         }
     }
+
+    createFile = () => {
+        try {
+            if (fs.existsSync(this.dbFile)) {
+                // Delete database file so we have a fresh start each time
+                fs.unlinkSync(this.dbFile);
+            }
+            this.createAndUpgradeDB();
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
     open() {
         return new sqlite3.Database(this.dbFile);
     }
 
-    createDB() {
+    createAndUpgradeDB = () => {
+        // Upgrade not implemented
         const db = this.open();
+        let createTable: string;
 
-        db.serialize(() => {
-            db.run(
-                "CREATE TABLE entries ( msgid INTEGER NOT NULL PRIMARY KEY, status TEXT NOT NULL, message TEXT NOT NULL, timestamp TEXT NOT NULL);"
-            );
-        });
+        for (const model of Models()) {
+            createTable = `CREATE TABLE IF NOT EXISTS ${model.type} (`;
+            const instantiatedModel = new model.class();
+            const keys = instantiatedModel.getKeys();
+
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i].Name;
+                const type = keys[i].Type;
+                // console.log(`Key: ${key}, Type: ${type}`);
+                if (key === "ID") {
+                    createTable += `ID INTEGER PRIMARY KEY AUTOINCREMENT`;
+                } else if (type === "string") {
+                    createTable += ` ${key} TEXT`;
+                } else if (type === "float") {
+                    createTable += ` ${key} REAL`;
+                } else if (type === "int") {
+                    createTable += ` ${key} INTEGER`;
+                } else if (type === "boolean") {
+                    createTable += ` ${key} INTEGER`;
+                } else {
+                    createTable += ` ${key} TEXT`;
+                }
+
+                if (
+                    keys.indexOf({ Name: key, Type: type }) ===
+                    keys.length - 1
+                ) {
+                    createTable += `);`;
+                }
+            }
+        }
+
+        db.serialize(() => db.run(createTable));
         this.close(db);
-    }
+    };
 
     async getModel(id: number) {
         return new Promise((resolve, _) => {
