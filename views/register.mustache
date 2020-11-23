@@ -1,4 +1,5 @@
 {{> header}}
+<h1>Register</h1>
 <form method="POST" action="{{ loginLink }}" autofill="on">
     <input type="text" placeholder="first name" name="firstName" aria-label="first name"/>
     <input type="text" placeholder="last name" name="lastName" aria-label="last name"/>
@@ -7,6 +8,7 @@
     <input type="password" placeholder="confirm password" name="confirmPassword" aria-label="email" />
     <input type="date" placeholder="birth date" name="birthDate" aria-label="birth date"/>
     <input type="phone" placeholder="cell phone" name="phone" aria-label="cell number"/>
+    <span>Have an account? <a href="{{ permalink }}/login">Login</a></span>
     <input type="submit" value="Register" />
 </form>
 {{> footer}}

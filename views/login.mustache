@@ -1,7 +1,9 @@
 {{> header}}
+<h1>Login</h1>
 <form method="POST" action="{{ loginLink }}" autofill="on">
     <input type="email" placeholder="email" name="email" aria-label="email"/>
     <input type="password" placeholder="password" name="password" aria-label="email" />
+    <span>Don't have an account? <a href="{{ permalink }}/register">Sign Up</a></span>
     <input type="submit" value="Login" />
 </form>
 {{> footer}}
