@@ -8,14 +8,16 @@ import sqlite3 from "sqlite3";
 import fs from "fs";
 import { Models } from "../conf/Models";
 import * as dotenv from "dotenv";
-import AbstractModel from "./models/AbstractModel";
+import AbstractModel, {
+    isInstanceOfAbstractModel,
+} from "./models/AbstractModel";
 
 dotenv.config({ path: __dirname + "/../.env" });
 
 export class Database {
     dbFile: string;
 
-    constructor(init = false, file = "api.db", path = "../") {
+    constructor(init = false, file = "api.db", path = `${__dirname}/../`) {
         this.dbFile = path + file;
         if (init) {
             this.createFile();
@@ -41,19 +43,19 @@ export class Database {
     createAndUpgradeDB = () => {
         // Upgrade not implemented
         const db = this.open();
-        let createTable: string;
+        let createTable: string = "";
 
         for (const model of Models()) {
             createTable = `CREATE TABLE IF NOT EXISTS ${model.type} (`;
             const instantiatedModel = new model.class();
-            const keys = instantiatedModel.getKeys();
-
+            const keys = instantiatedModel.getProperties();
+            console.log(keys);
+            // tslint:disable-next-line: prefer-for-of
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i].Name;
                 const type = keys[i].Type;
-                // console.log(`Key: ${key}, Type: ${type}`);
                 if (key === "ID") {
-                    createTable += `ID INTEGER PRIMARY KEY AUTOINCREMENT`;
+                    createTable += ` ID INTEGER PRIMARY KEY AUTOINCREMENT`;
                 } else if (type === "string") {
                     createTable += ` ${key} TEXT`;
                 } else if (type === "float") {
@@ -66,27 +68,80 @@ export class Database {
                     createTable += ` ${key} TEXT`;
                 }
 
-                if (
-                    keys.indexOf({ Name: key, Type: type }) ===
-                    keys.length - 1
-                ) {
-                    createTable += `);`;
+                if (i < keys.length - 1) {
+                    createTable += `,`;
                 }
             }
+            createTable += `);`;
         }
+        console.log(createTable);
 
-        db.serialize(() => db.run(createTable));
-        this.close(db);
+        db.serialize(() =>
+            db.run(createTable, () => {
+                this.close(db);
+            })
+        );
     };
 
-    async getModel(id: number) {
+    async selectModel(model: AbstractModel) {
         return new Promise((resolve, _) => {
             const db = this.open();
+
+            let select = "";
+            let whereClause = "WHERE";
+
+            const keys: { Name: string; Type: string }[] = model.getKeys();
+            console.log(keys);
+
+            const getValue = (property: string) =>
+                Object.entries(model).find(([key, _]) => key === property)![1];
+
+            for (let i = 0; i < keys.length; i++) {
+                const type = keys[i].Type;
+                if (type === "string") {
+                    whereClause += ` ${keys[i].Name} = ${getValue(
+                        keys[i].Name
+                    )}`;
+                } else if (type === "boolean") {
+                    whereClause += ` ${keys[i].Name} = ${
+                        getValue(keys[i].Name) ? 1 : 0
+                    }`;
+                } else if (type === "date") {
+                    whereClause += ` ${keys[i].Name} = ${new Date(
+                        getValue(keys[i].Name)
+                    ).toString()}`;
+                } else {
+                    whereClause += ` ${keys[i].Name} = ${getValue(
+                        keys[i].Name
+                    )}`;
+                }
+
+                if (i < keys.length - 1) {
+                    whereClause += " AND";
+                }
+            }
+            console.log(whereClause);
+
+            select = "SELECT";
+            const properties = model.getProperties();
+
+            for (let i = 0; i < properties.length; i++) {
+                const property = properties[i];
+                select += ` ${property.Name}`;
+
+                if (i < properties.length - 1) {
+                    select += ",";
+                }
+            }
+
+            select += ` FROM ${model.constructor.name}`;
+            const commandTxt = `${select} ${whereClause}`;
+
             let returnMessage = "";
             db.serialize(() => {
                 db.each(
-                    "SELECT * FROM entries WHERE msgid = ?",
-                    [id],
+                    "SELECT * FROM entries WHERE  = ?",
+                    [],
                     (err, row) => {
                         returnMessage = row;
                     },

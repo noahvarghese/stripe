@@ -2,7 +2,6 @@ import express from "express";
 import * as dotenv from "dotenv";
 import { User } from "./lib/models/User";
 import { Database } from "./lib/Database";
-import e from "express";
 dotenv.config();
 
 (async () => {
@@ -44,12 +43,13 @@ dotenv.config();
         res.render("login", data);
     });
 
-    app.post("/login", (req, res) => {
+    app.post("/login", async (req, res) => {
         const { email, password } = req.body;
 
-        const user = new User();
-        user.email = email;
-        user.password = password;
+        const tmpUser = new User();
+        tmpUser.email = email;
+        const user = await database.selectModel(tmpUser);
+        res.send(user);
     });
 
     app.get("/register", (_, res) => {
@@ -74,7 +74,6 @@ dotenv.config();
         user.firstName = firstName;
         user.lastName = lastName;
         user.email = email;
-        user.password = password;
         user.birthDate = birthDate;
         user.phone = phone;
     });

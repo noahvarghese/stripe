@@ -7,37 +7,50 @@ export class User implements AbstractModel {
     firstName: string = "";
     lastName?: string = "";
     email?: string = "";
-    password?: string = "";
     hash?: string = "";
     birthDate?: Date = new Date(8640000000000000);
     phone?: number = -1;
 
     constructor() {}
 
-    getKeys = (): any[] =>
-        Object.keys(this).map((key: string, value: any) => {
-            let type: string = typeof value;
-            console.log(`Key: ${key}, Type: ${type}, Value: ${value}`);
+    getProperties = (): { Name: string; Type: string }[] =>
+        Object.entries(this)
+            .filter(([key, _], __: any) =>
+                !["getProperties", "getKeys", "getListKeys"].includes(key)
+                    ? true
+                    : false
+            )
+            .map(([key, value], ___: number) => {
+                let type: string = typeof value;
+                // console.log(`Key: ${key}, Type: ${type}, Value: ${value}`);
 
-            if (type === "number") {
-                if (value % 1 === 0) {
-                    type = "int";
-                } else {
-                    type = "float";
+                if (type === "number") {
+                    if (value % 1 === 0) {
+                        type = "int";
+                    } else {
+                        type = "float";
+                    }
                 }
-            }
 
-            if (type === "object") {
-                if (value instanceof Date) {
-                    type = "date";
+                if (type === "object") {
+                    console.log(value instanceof Date);
+                    if (value instanceof Date) {
+                        type = "date";
+                    }
                 }
-            }
 
-            return {
-                Name: key,
-                Type: type,
-            };
-        });
+                return {
+                    Name: key,
+                    Type: type,
+                };
+            });
+
+    getKeys = (): { Name: string; Type: string }[] => {
+        return [
+            { Name: "ID", Type: "number" },
+            { Name: "email", Type: "string" },
+        ];
+    };
 
     getListKeys = () => [];
 }
