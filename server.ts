@@ -1,4 +1,5 @@
 import express from "express";
+import session from "express-session";
 import * as dotenv from "dotenv";
 import { Sequelize } from "sequelize";
 import { User } from "./lib/models/User";
@@ -10,8 +11,17 @@ dotenv.config();
     const permalink = dev ? "http://localhost:4000" : "";
 
     const app = express();
+
+    // Set body parsing
     app.use(express.json());
-    app.use(express.urlencoded());
+    app.use(express.urlencoded({ extended: true }));
+
+    // setup sessions
+    app.use(session({
+        secret: process.env.SESSION_SECRET!,
+        resave: false,
+        saveUninitialized: false 
+    }));
 
     // Setup Database
     // const database = new Database(true);
@@ -44,15 +54,22 @@ dotenv.config();
     });
 
     app.post("/login", async (req, res) => {
+        let loggedIn = false;
         const { email, password } = req.body;
 
         const user = await User.findOne({where: {email}});
 
         if ( user ) {
-            if ( user.hash ===)
+            if ( user.hash === password ) {
+                loggedIn = true;
+                // set session
+                res.redirect("/home");
+            }
         }
         
-        res.send(user);
+        if ( ! loggedIn ) {
+            res.send(user);
+        }
     });
 
     app.get("/register", (_, res) => {
