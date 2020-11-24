@@ -62,7 +62,7 @@ dotenv.config();
         if ( user ) {
             if ( user.hash === password ) {
                 loggedIn = true;
-                // set session
+                req.session!.user = user;
                 res.redirect("/home");
             }
         }
