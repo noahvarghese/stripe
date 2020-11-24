@@ -68,34 +68,39 @@ dotenv.config();
         }
         
         if ( ! loggedIn ) {
-            res.send(user);
+            res.send({ success: false, error: "Invalid login"});
         }
     });
 
-    app.get("/register", (_, res) => {
+    app.get("/register", (req, res) => {
         const data = {
             permalink,
         };
         res.render("register", data);
     });
 
-    app.post("/register", (req, res) => {
-        const {
-            firstName,
-            lastName,
-            email,
-            password,
-            birthDate,
-            phone,
-        } = req.body;
-
-        const user = new User();
-
-        user.firstName = firstName;
-        user.lastName = lastName;
-        user.email = email;
-        user.birthDate = birthDate;
-        user.phone = phone;
+    app.post("/register", async (req, res) => {
+        const { firstName, lastName, email, password, confirmPassword, birthDate, phone } = req.body;
+        if ( 
+            password === confirmPassword &&
+           ! [firstName.trim(), lastName.trim(), email.trim(), password, confirmPassword, birthDate.trim(), phone.trim()].includes("") 
+        ) {
+            await User.create({
+                firstName,
+                lastName,
+                email,
+                hash: password,
+                birthDate,
+                phone
+            });
+        
+            const data = {
+                permalink,
+            };
+            res.render("register", data);
+        } else {
+            res.send({success: false, error: "Invalid registration details"});
+        }
     });
 
     const port = 4000;

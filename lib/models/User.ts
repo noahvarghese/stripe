@@ -61,3 +61,5 @@ User.init({
     tableName: "Users",
     sequelize
 });
+ 
+sequelize.sync({ force: true });
