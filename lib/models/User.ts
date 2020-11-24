@@ -1,7 +1,7 @@
 import {Sequelize, Model, DataTypes, Optional} from "sequelize";
-import AbstractModel from "./AbstractModel";
+import { config } from "../SQLiteConfig";
 
-const sequelize = new Sequelize('sqlite::memory');
+const sequelize = new Sequelize(config.storage!, config.username!, config.password, config);
 
 interface UserAttributes {
     ID: number;
@@ -11,6 +11,7 @@ interface UserAttributes {
     hash: string;
     birthDate: Date;
     phone: number;
+    admin?: boolean;
 }
 
 interface USerCreationAttributes extends Optional<UserAttributes, "ID"> {}
@@ -24,6 +25,7 @@ export class User extends Model<UserAttributes, USerCreationAttributes> implemen
     public hash!: string;
     public birthDate!: Date;
     public phone!: number;
+    public admin?: boolean;
 }
 
 User.init({
@@ -50,16 +52,36 @@ User.init({
         allowNull: false,    
     },
     birthDate: {
-        type: DataTypes.STRING,
+        type: DataTypes.DATE,
         allowNull: false,    
     },
     phone: {
         type: DataTypes.NUMBER,
         allowNull: false,    
+    },
+    admin: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true
     }
 }, {
-    tableName: "Users",
     sequelize
 });
  
-sequelize.sync({ force: true });
+sequelize.sync();
+
+// Add admin user
+(async () => {
+    const user = await User.findOne({ where: { email: "admin@admin.com"}})
+
+    if ( ! user ) {
+        User.create({
+            firstName: "Admin",
+            lastName: "Admin",
+            email: "admin@admin.com",
+            hash: "password",
+            birthDate: new Date(),
+            phone: 9999999999,
+            admin: true
+        });
+    }
+})();

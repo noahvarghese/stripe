@@ -3,7 +3,8 @@ import session from "express-session";
 import * as dotenv from "dotenv";
 import { Sequelize } from "sequelize";
 import { User } from "./lib/models/User";
-// import { Database } from "./lib/Database";
+import { config } from "./lib/SQLiteConfig";
+
 dotenv.config();
 
 (async () => {
@@ -25,7 +26,8 @@ dotenv.config();
 
     // Setup Database
     // const database = new Database(true);
-    const sequelize = new Sequelize("sqlite::memory");
+
+    const sequelize = new Sequelize(config.storage!, config.username!, config.password, config);
     sequelize.sync();
 
     // Configure mustache
@@ -59,20 +61,23 @@ dotenv.config();
 
         const user = await User.findOne({where: {email}});
 
-        if ( user ) {
-            if ( user.hash === password ) {
-                loggedIn = true;
-                req.session!.user = user;
-                res.redirect("/home");
+        if ( user && user.hash === password ) {
+            loggedIn = true;
+            req.session!.user = user;
+                
+            let path = "/home";
+
+            if ( user.admin ) {
+                path = "/admin";
             }
-        }
-        
-        if ( ! loggedIn ) {
+
+            res.redirect(path);
+        } else {
             res.send({ success: false, error: "Invalid login"});
         }
     });
 
-    app.get("/register", (req, res) => {
+    app.get("/register", (_, res) => {
         const data = {
             permalink,
         };
@@ -85,7 +90,7 @@ dotenv.config();
             password === confirmPassword &&
            ! [firstName.trim(), lastName.trim(), email.trim(), password, confirmPassword, birthDate.trim(), phone.trim()].includes("") 
         ) {
-            await User.create({
+           const user = await User.create({
                 firstName,
                 lastName,
                 email,
@@ -93,13 +98,17 @@ dotenv.config();
                 birthDate,
                 phone
             });
-        
+
+            req.session!.user = user;
+            
+            // redirect user to enter code from sms
+            res.redirect("/code")
+        } else {
             const data = {
                 permalink,
-            };
+                error: "Invalid registration details"
+            }
             res.render("register", data);
-        } else {
-            res.send({success: false, error: "Invalid registration details"});
         }
     });
 
