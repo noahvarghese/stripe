@@ -1,7 +1,8 @@
 import express from "express";
 import * as dotenv from "dotenv";
+import { Sequelize } from "sequelize";
 import { User } from "./lib/models/User";
-import { Database } from "./lib/Database";
+// import { Database } from "./lib/Database";
 dotenv.config();
 
 (async () => {
@@ -13,7 +14,9 @@ dotenv.config();
     app.use(express.urlencoded());
 
     // Setup Database
-    const database = new Database(true);
+    // const database = new Database(true);
+    const sequelize = new Sequelize("sqlite::memory");
+    sequelize.sync();
 
     // Configure mustache
     const mustacheExpress = require("mustache-express");
@@ -27,9 +30,6 @@ dotenv.config();
     app.set("views", __dirname + "/views");
 
     app.get("/", (_, res) => {
-        const user = new User();
-        user.firstName = "Noah";
-        user.getKeys();
         const data = {
             permalink,
         };
@@ -46,9 +46,12 @@ dotenv.config();
     app.post("/login", async (req, res) => {
         const { email, password } = req.body;
 
-        const tmpUser = new User();
-        tmpUser.email = email;
-        const user = await database.selectModel(tmpUser);
+        const user = await User.findOne({where: {email}});
+
+        if ( user ) {
+            if ( user.hash ===)
+        }
+        
         res.send(user);
     });
 
