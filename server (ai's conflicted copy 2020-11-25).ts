@@ -1,14 +1,23 @@
 import express from "express";
 import session from "express-session";
-import * as dotenv from "dotenv";
 import { Sequelize } from "sequelize";
-import { User } from "./lib/models/User";
-// import { Database } from "./lib/Database";
+
+import * as dotenv from "dotenv";
 dotenv.config();
+
+import twilio from "twilio";
+const client = twilio(process.env.ACCOUNT_SID!, process.env.AUTH_TOKEN!)
+
+
+import { User } from "./lib/models/User";
+import { config } from "./lib/SQLiteConfig";
 
 (async () => {
     const dev = true;
     const permalink = dev ? "http://localhost:4000" : "";
+    const defaultData = {
+        permalink
+    }
 
     const app = express();
 
@@ -25,7 +34,8 @@ dotenv.config();
 
     // Setup Database
     // const database = new Database(true);
-    const sequelize = new Sequelize("sqlite::memory");
+
+    const sequelize = new Sequelize(config.storage!, config.username!, config.password, config);
     sequelize.sync();
 
     // Configure mustache
@@ -41,14 +51,14 @@ dotenv.config();
 
     app.get("/", (_, res) => {
         const data = {
-            permalink,
+           ...defaultData 
         };
         res.render("app", data);
     });
 
     app.get("/login", (_, res) => {
         const data = {
-            permalink,
+            ...defaultData
         };
         res.render("login", data);
     });
@@ -59,24 +69,31 @@ dotenv.config();
 
         const user = await User.findOne({where: {email}});
 
-        if ( user ) {
-            if ( user.hash === password ) {
-                loggedIn = true;
-                req.session!.user = user;
-                res.redirect("/home");
+        if ( user && user.hash === password ) {
+            loggedIn = true;
+            req.session!.user = user;
+                
+            let path = "/customer";
+
+            if ( user.admin ) {
+                path = "/admin";
             }
-        }
-        
-        if ( ! loggedIn ) {
-            res.send({ success: false, error: "Invalid login"});
+
+            res.redirect(path);
+        } else {
+            const data = {
+                ...defaultData,
+                error: "Invalid login"
+            }
+            res.render("public/login", data);
         }
     });
 
-    app.get("/register", (req, res) => {
+    app.get("/register", (_, res) => {
         const data = {
-            permalink,
+            ...defaultData
         };
-        res.render("register", data);
+        res.render("public/register", data);
     });
 
     app.post("/register", async (req, res) => {
@@ -85,7 +102,7 @@ dotenv.config();
             password === confirmPassword &&
            ! [firstName.trim(), lastName.trim(), email.trim(), password, confirmPassword, birthDate.trim(), phone.trim()].includes("") 
         ) {
-            await User.create({
+           const user = await User.create({
                 firstName,
                 lastName,
                 email,
@@ -93,14 +110,33 @@ dotenv.config();
                 birthDate,
                 phone
             });
-        
-            const data = {
-                permalink,
-            };
-            res.render("register", data);
+
+            req.session!.user = user;
+           
+            let randomCode = Math.floor(Math.random() * 999) + 0o1;
+            req.session!.confirmCode = randomCode;
+            // TODO: send code via twilio sms, use serverless
+            client.messages.create({         
+                to: '+16477715777',
+                body: "Thank you for using Sealand Internet Services. Here is your authorization code: " + randomCode
+            }) 
+            .then(message => console.log(message.sid)) 
+            // redirect user to enter code from sms
+            res.redirect("/confirm")
         } else {
-            res.send({success: false, error: "Invalid registration details"});
+            const data = {
+                ...defaultData,
+                error: "Invalid registration details"
+            }
+            res.render("public/register", data);
         }
+    });
+
+    app.get("/confirm", (_, res) => {
+        const data = {
+            permalink
+        }
+        res.render("public/confirm", data);
     });
 
     const port = 4000;
