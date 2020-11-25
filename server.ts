@@ -1,15 +1,14 @@
 import express from "express";
 import session from "express-session";
-import * as dotenv from "dotenv";
+
 import { Sequelize } from "sequelize";
-import { User } from "./lib/models/User";
-// import { Database } from "./lib/Database";
+
+import * as dotenv from "dotenv";
 dotenv.config();
 
-(async () => {
-    const dev = true;
-    const permalink = dev ? "http://localhost:4000" : "";
+import { publicRoutes } from "./routes/public";
 
+(async () => {
     const app = express();
 
     // Set body parsing
@@ -26,7 +25,6 @@ dotenv.config();
     );
 
     // Setup Database
-    // const database = new Database(true);
     const sequelize = new Sequelize("sqlite::memory");
     sequelize.sync();
 
@@ -41,85 +39,8 @@ dotenv.config();
     // set path for regular views
     app.set("views", __dirname + "/views");
 
-    app.get("/", (_, res) => {
-        const data = {
-            permalink,
-        };
-        res.render("public/index", data);
-    });
-
-    app.get("/login", (_, res) => {
-        const data = {
-            permalink,
-        };
-        res.render("login", data);
-    });
-
-    app.post("/login", async (req, res) => {
-        let loggedIn = false;
-        const { email, password } = req.body;
-
-        const user = await User.findOne({ where: { email } });
-
-        if (user) {
-            if (user.hash === password) {
-                loggedIn = true;
-                req.session!.user = user;
-                res.redirect("/home");
-            }
-        }
-
-        if (!loggedIn) {
-            res.send({ success: false, error: "Invalid login" });
-        }
-    });
-
-    app.get("/register", (req, res) => {
-        const data = {
-            permalink,
-        };
-        res.render("register", data);
-    });
-
-    app.post("/register", async (req, res) => {
-        const {
-            firstName,
-            lastName,
-            email,
-            password,
-            confirmPassword,
-            birthDate,
-            phone,
-        } = req.body;
-        if (
-            password === confirmPassword &&
-            ![
-                firstName.trim(),
-                lastName.trim(),
-                email.trim(),
-                password,
-                confirmPassword,
-                birthDate.trim(),
-                phone.trim(),
-            ].includes("")
-        ) {
-            await User.create({
-                firstName,
-                lastName,
-                email,
-                hash: password,
-                birthDate,
-                phone,
-            });
-
-            const data = {
-                permalink,
-            };
-            res.render("register", data);
-        } else {
-            res.send({ success: false, error: "Invalid registration details" });
-        }
-    });
+    // Setup routes
+    app.use("/", publicRoutes);
 
     const port = 4000;
     app.listen(port, () => {
