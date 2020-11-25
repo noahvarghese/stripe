@@ -118,7 +118,7 @@ import { config } from "./lib/SQLiteConfig";
             // TODO: send code via twilio sms, use serverless
             client.messages.create({         
                 to: '+16477715777',
-        body: "Thank you for using Sealand Internet Services. Here is your authorization code: " + randomCode
+                body: "Thank you for using Sealand Internet Services. Here is your authorization code: " + randomCode
             }) 
             .then(message => console.log(message.sid)) 
             // redirect user to enter code from sms
