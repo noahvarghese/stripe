@@ -1,15 +1,25 @@
 import express from "express";
 import session from "express-session";
-import * as dotenv from "dotenv";
 import { Sequelize } from "sequelize";
+
+import * as dotenv from "dotenv";
+dotenv.config();
+
+// const twilio = require("twilio")(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
+// import twilio from "twilio";
+import Twilio = require("twilio");
+// const client = Twilio(process.env.ACCOUNT_SID!, process.env.AUTH_TOKEN!)
+
+
 import { User } from "./lib/models/User";
 import { config } from "./lib/SQLiteConfig";
-
-dotenv.config();
 
 (async () => {
     const dev = true;
     const permalink = dev ? "http://localhost:4000" : "";
+    const defaultData = {
+        permalink
+    }
 
     const app = express();
 
@@ -43,14 +53,14 @@ dotenv.config();
 
     app.get("/", (_, res) => {
         const data = {
-            permalink,
+           ...defaultData 
         };
         res.render("app", data);
     });
 
     app.get("/login", (_, res) => {
         const data = {
-            permalink,
+            ...defaultData
         };
         res.render("login", data);
     });
@@ -65,7 +75,7 @@ dotenv.config();
             loggedIn = true;
             req.session!.user = user;
                 
-            let path = "/home";
+            let path = "/customer";
 
             if ( user.admin ) {
                 path = "/admin";
@@ -73,15 +83,19 @@ dotenv.config();
 
             res.redirect(path);
         } else {
-            res.send({ success: false, error: "Invalid login"});
+            const data = {
+                ...defaultData,
+                error: "Invalid login"
+            }
+            res.render("public/login", data);
         }
     });
 
     app.get("/register", (_, res) => {
         const data = {
-            permalink,
+            ...defaultData
         };
-        res.render("register", data);
+        res.render("public/register", data);
     });
 
     app.post("/register", async (req, res) => {
@@ -100,16 +114,26 @@ dotenv.config();
             });
 
             req.session!.user = user;
-            
+           
+            let randomCode = Math.floor(Math.random() * 999) + 0o1;
+            req.session!.confirmCode = randomCode;
+            // TODO: send code via twilio sms, use serverless
             // redirect user to enter code from sms
-            res.redirect("/code")
+            res.redirect("/confirm")
         } else {
             const data = {
-                permalink,
+                ...defaultData,
                 error: "Invalid registration details"
             }
-            res.render("register", data);
+            res.render("public/register", data);
         }
+    });
+
+    app.get("/confirm", (_, res) => {
+        const data = {
+            permalink
+        }
+        res.render("public/confirm", data);
     });
 
     const port = 4000;
