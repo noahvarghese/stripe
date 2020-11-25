@@ -5,10 +5,8 @@ import { Sequelize } from "sequelize";
 import * as dotenv from "dotenv";
 dotenv.config();
 
-// const twilio = require("twilio")(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
-// import twilio from "twilio";
-import Twilio = require("twilio");
-// const client = Twilio(process.env.ACCOUNT_SID!, process.env.AUTH_TOKEN!)
+import twilio from "twilio";
+const client = twilio(process.env.ACCOUNT_SID!, process.env.AUTH_TOKEN!)
 
 
 import { User } from "./lib/models/User";
@@ -118,6 +116,11 @@ import { config } from "./lib/SQLiteConfig";
             let randomCode = Math.floor(Math.random() * 999) + 0o1;
             req.session!.confirmCode = randomCode;
             // TODO: send code via twilio sms, use serverless
+            client.messages.create({         
+                to: '+16477715777',
+        body: "Thank you for using Sealand Internet Services. Here is your authorization code: " + randomCode
+            }) 
+            .then(message => console.log(message.sid)) 
             // redirect user to enter code from sms
             res.redirect("/confirm")
         } else {
