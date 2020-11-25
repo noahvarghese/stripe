@@ -24,19 +24,13 @@ import { publicRoutes } from "./routes/public";
         })
     );
 
-    // Setup Database
-    const sequelize = new Sequelize("sqlite::memory");
-    sequelize.sync();
-
     // Configure mustache
     const mustacheExpress = require("mustache-express");
-    // set path for mustache partials
     app.engine(
         "mustache",
         mustacheExpress(__dirname + "/views/partials", ".mustache")
     );
     app.set("view engine", "mustache");
-    // set path for regular views
     app.set("views", __dirname + "/views");
 
     // Setup routes

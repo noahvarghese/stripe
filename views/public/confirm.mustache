@@ -3,7 +3,11 @@
     <div>
         <h2>Confirmation Code</h2>
         <form method="POST" action="{{permalink}}/confirm">
-            <
+            <input type="text" name="confirmCode" aria-label="confirm code" placeholder="confirm code" />
+            <input type="submit" value="Confirm" />
+            {{ #error }}
+            <span class="error">{{ error }}</span>
+            {{ /error}}
         </form>
     </div>
 {{> footer}}

@@ -17,6 +17,7 @@ interface UserAttributes {
     birthDate: Date;
     phone: number;
     admin?: boolean;
+    accountConfirmed: boolean;
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, "ID"> {}
@@ -33,6 +34,7 @@ export class User
     public birthDate!: Date;
     public phone!: number;
     public admin?: boolean;
+    public accountConfirmed!: boolean;
 }
 
 User.init(
@@ -71,20 +73,23 @@ User.init(
             type: DataTypes.BOOLEAN,
             allowNull: true,
         },
+        accountConfirmed: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+        },
     },
     {
         sequelize,
     }
 );
 
-sequelize.sync();
-
 // Add admin user
 (async () => {
+    await sequelize.sync();
     const user = await User.findOne({ where: { email: "admin@admin.com" } });
 
     if (!user) {
-        User.create({
+        const admin = await User.create({
             firstName: "Admin",
             lastName: "Admin",
             email: "admin@admin.com",
@@ -92,6 +97,10 @@ sequelize.sync();
             birthDate: new Date(),
             phone: 9999999999,
             admin: true,
+            accountConfirmed: true,
         });
+        if (admin) {
+            console.log("Admin user created.");
+        }
     }
 })();

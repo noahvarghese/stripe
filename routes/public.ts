@@ -6,6 +6,25 @@ import { User } from "../lib/models/User";
 
 export const publicRoutes = Router();
 
+const sendCode = (phone: number): Promise<number> => {
+    const randomCode = Math.floor(Math.random() * 999) + 0o1;
+    return new Promise((resolve, reject) => {
+        twilio.messages
+            .create({
+                to: phone.toString(),
+                body: `Thank you for using My Saas. Here is your authorization code: ${randomCode}`,
+            })
+            .then((message) => {
+                console.log(message);
+                resolve(randomCode);
+            })
+            .catch((err) => {
+                console.error(err);
+                reject(err);
+            });
+    });
+};
+
 publicRoutes.get("/", (_, res) => {
     res.render("public/index", defaultData);
 });
@@ -73,18 +92,11 @@ publicRoutes
                 hash: password,
                 birthDate,
                 phone,
+                accountConfirmed: false,
             });
 
-            const randomCode = Math.floor(Math.random() * 999) + 0o1;
-            req.session!.confirmCode = randomCode;
-
-            twilio.messages
-                .create({
-                    to: user.phone.toString(),
-                    body: `Thank you for using My Saas. Here is your authorization code: ${randomCode}`,
-                })
-                .then((message) => console.log(message))
-                .catch((err) => console.error(err));
+            req.session!.confirmCode = await sendCode(user.phone);
+            req.session!.user = user;
 
             res.redirect("/confirm");
         } else {
@@ -95,3 +107,42 @@ publicRoutes
             res.render("public/register", data);
         }
     });
+
+publicRoutes
+    .route("/confirm")
+    .get((req, res) => {
+        const data = {
+            ...defaultData,
+            name: `${req.session!.user.firstName} ${
+                req.session!.user.lastName
+            }`,
+        };
+        res.render("public/confirm", data);
+    })
+    .post(async (req, res) => {
+        if (req.body.confirmCode === req.session!.confirmCode) {
+            const user: User = req.session!.user;
+            user.accountConfirmed = true;
+            await user.save();
+            req.session!.confirmCode = null;
+            res.redirect("/home");
+        } else {
+            const data = {
+                ...defaultData,
+                error: "Invalid code",
+            };
+            res.render("public/confirm", data);
+        }
+    });
+
+publicRoutes.post("/sendCode", async (req, res) => {
+    const data: any = { ...defaultData };
+
+    if (req.session!.user) {
+        req.session!.confirmCode = await sendCode(req.session!.user.phone);
+    } else {
+        data.error = "Unable to resend code.";
+    }
+
+    res.render("/confirm", data);
+});
