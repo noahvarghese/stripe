@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import twilio from "../lib/TwilioConfig";
 import defaultData from "./defaultData";
-import { User } from "../lib/models/User (ai's conflicted copy 2020-11-25)";
+import { User } from "../lib/models/User";
 
 export const publicRoutes = Router();
 
