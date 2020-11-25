@@ -17,11 +17,13 @@ dotenv.config();
     app.use(express.urlencoded({ extended: true }));
 
     // setup sessions
-    app.use(session({
-        secret: process.env.SESSION_SECRET!,
-        resave: false,
-        saveUninitialized: false 
-    }));
+    app.use(
+        session({
+            secret: process.env.SESSION_SECRET!,
+            resave: false,
+            saveUninitialized: false,
+        })
+    );
 
     // Setup Database
     // const database = new Database(true);
@@ -43,7 +45,7 @@ dotenv.config();
         const data = {
             permalink,
         };
-        res.render("app", data);
+        res.render("public/index", data);
     });
 
     app.get("/login", (_, res) => {
@@ -57,18 +59,18 @@ dotenv.config();
         let loggedIn = false;
         const { email, password } = req.body;
 
-        const user = await User.findOne({where: {email}});
+        const user = await User.findOne({ where: { email } });
 
-        if ( user ) {
-            if ( user.hash === password ) {
+        if (user) {
+            if (user.hash === password) {
                 loggedIn = true;
                 req.session!.user = user;
                 res.redirect("/home");
             }
         }
-        
-        if ( ! loggedIn ) {
-            res.send({ success: false, error: "Invalid login"});
+
+        if (!loggedIn) {
+            res.send({ success: false, error: "Invalid login" });
         }
     });
 
@@ -80,10 +82,26 @@ dotenv.config();
     });
 
     app.post("/register", async (req, res) => {
-        const { firstName, lastName, email, password, confirmPassword, birthDate, phone } = req.body;
-        if ( 
+        const {
+            firstName,
+            lastName,
+            email,
+            password,
+            confirmPassword,
+            birthDate,
+            phone,
+        } = req.body;
+        if (
             password === confirmPassword &&
-           ! [firstName.trim(), lastName.trim(), email.trim(), password, confirmPassword, birthDate.trim(), phone.trim()].includes("") 
+            ![
+                firstName.trim(),
+                lastName.trim(),
+                email.trim(),
+                password,
+                confirmPassword,
+                birthDate.trim(),
+                phone.trim(),
+            ].includes("")
         ) {
             await User.create({
                 firstName,
@@ -91,15 +109,15 @@ dotenv.config();
                 email,
                 hash: password,
                 birthDate,
-                phone
+                phone,
             });
-        
+
             const data = {
                 permalink,
             };
             res.render("register", data);
         } else {
-            res.send({success: false, error: "Invalid registration details"});
+            res.send({ success: false, error: "Invalid registration details" });
         }
     });
 
