@@ -16,7 +16,7 @@ const sendCode = (phone: number): Promise<number> => {
                 body: `Thank you for using My Saas. Here is your authorization code: ${randomCode}`,
             })
             .then((message) => {
-                console.log(message);
+                console.log(message.sid);
                 resolve(randomCode);
             })
             .catch((err) => {
@@ -102,7 +102,7 @@ publicRoutes
 
             req.session!.confirmCode = await sendCode(user.phone);
             user.confirmCode = req.session!.confirmCode;
-            user.save();
+            await user.save();
             req.session!.user = user;
 
             res.redirect("/confirm");
@@ -131,13 +131,22 @@ publicRoutes
     .post(async (req, res) => {
 
         if (Number(req.body.confirmCode) === Number(req.session!.confirmCode)) {
-            const user: User = req.session!.user;
-            user.accountConfirmed = true;
-            user.confirmCode = undefined;
-            await user.save();
+            const user = await User.findOne({where: {email: req.session!.user.email }});
 
-            req.session!.confirmCode = null;
-            res.redirect("/subscriptions");
+            if ( user ) {
+                user.accountConfirmed = true;
+                user.confirmCode = undefined;
+                await user.save();
+
+                req.session!.confirmCode = null;
+                res.redirect("/subscriptions");
+            } else {
+                const data = {
+                    ...defaultData,
+                    error: "Session error."
+                }
+                res.render("public/confirm", data);
+            }
 
         } else {
             const data = {
