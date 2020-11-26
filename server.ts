@@ -11,6 +11,8 @@ dotenv.config();
 import { publicRoutes } from "./routes/public";
 import { customerRoutes } from "./routes/customer";
 
+import { User } from "./lib/models/User";
+
 (async () => {
     const app = express();
 
@@ -41,6 +43,45 @@ import { customerRoutes } from "./routes/customer";
             saveUninitialized: false,
         })
     );
+
+    // Authorization middleware
+    app.use((req, res, next) => {
+        //  They went to /customer
+        if(req.originalUrl.indexOf('/customer/') > -1) {
+            // they are not logged in
+            if ( !req.session!.user) {
+                res.redirect('/');
+                return;
+            }
+            // they are logged in
+            else {
+                // they do not have a subscriptio
+                if ( ! req.session!.user.subscriptionId ) {
+                    res.redirect("/customer/subsription")
+                    return
+                } else {
+                    // they have a subscription, all is good
+                    next();
+                }
+            }
+        }
+        // They went to admin
+        else if (req.originalUrl.indexOf("/admin/") > -1) {
+            // if the user is not logged in
+            if ( ! req.session!.user ) {
+                res.redirect("/");
+                return;
+            }
+            else {
+                if ( !(req.session!.user as User).admin ) {
+                    res.redirect("/customer");
+                    return;
+                } else {
+                    next();
+                }
+            }
+        }
+    });
 
     // Configure mustache
     const mustacheExpress = require("mustache-express");
