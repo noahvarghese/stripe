@@ -45,7 +45,7 @@ publicRoutes
             if (user.hash === password) {
                 loggedIn = true;
                 req.session!.user = user;
-                res.redirect("/home");
+                res.redirect("/subscriptions");
             }
         }
 
@@ -74,6 +74,10 @@ publicRoutes
             birthDate,
             phone,
         } = req.body;
+
+        // input validation
+        // check for any empty or null values
+        // compare password and confirm password
         if (
             password === confirmPassword &&
             ![
@@ -105,6 +109,7 @@ publicRoutes
                 ...defaultData,
                 error: "Invalid registration details",
             };
+
             res.render("public/register", data);
         }
     });
@@ -118,22 +123,25 @@ publicRoutes
                 req.session!.user.lastName
             }`,
         };
+
         res.render("public/confirm", data);
     })
     .post(async (req, res) => {
-        console.log(req.body.confirmCode, typeof req.body.confirmCode)
-        console.log(req.session!.confirmCode, typeof req.session!.confirmCode)
+
         if (Number(req.body.confirmCode) === Number(req.session!.confirmCode)) {
             const user: User = req.session!.user;
             user.accountConfirmed = true;
             await user.save();
+
             req.session!.confirmCode = null;
-            res.redirect("/home");
+            res.redirect("/subscriptions");
+
         } else {
             const data = {
                 ...defaultData,
                 error: "Invalid code",
             };
+
             res.render("public/confirm", data);
         }
     });

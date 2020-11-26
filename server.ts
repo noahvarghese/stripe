@@ -7,6 +7,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import { publicRoutes } from "./routes/public";
+import { customerRoutes } from "./routes/customer";
 
 (async () => {
     const app = express();
@@ -35,8 +36,9 @@ import { publicRoutes } from "./routes/public";
 
     // Setup routes
     app.use("/", publicRoutes);
+    app.use("/customer", customerRoutes);
 
-    const port = 4000;
+    const port = 3000;
     app.listen(port, () => {
         console.log(`Server listening on port: ${port}`);
     });

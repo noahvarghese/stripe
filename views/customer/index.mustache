@@ -1,0 +1,25 @@
+{{> header}}
+<h1>MySaas</h1>
+
+<div>
+    <h2>Subcriptions</h2>
+    {{ #plans }}
+    <div onclick="(e) => addData()" id="{{ id }}">
+        <h3>{{ name }}</h3>
+        <span>{{ price }}</span>
+        <p>{{ description }}</p>
+    </div>
+    {{ /plans }}
+<div>
+<script type="application/javascript">
+    const addData = (e) => {
+        e.preventDefault();
+        const id = e.target.id;
+        fetch("{{ permalink }}/customer/subscriptions", {
+            method: "POST",
+            body: JSON.stringify(data)
+        })
+    }
+</script>
+
+{{> footer}}
