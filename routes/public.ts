@@ -101,6 +101,8 @@ publicRoutes
             });
 
             req.session!.confirmCode = await sendCode(user.phone);
+            user.confirmCode = req.session!.confirmCode;
+            user.save();
             req.session!.user = user;
 
             res.redirect("/confirm");
@@ -131,6 +133,7 @@ publicRoutes
         if (Number(req.body.confirmCode) === Number(req.session!.confirmCode)) {
             const user: User = req.session!.user;
             user.accountConfirmed = true;
+            user.confirmCode = undefined;
             await user.save();
 
             req.session!.confirmCode = null;

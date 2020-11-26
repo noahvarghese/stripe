@@ -18,6 +18,7 @@ interface UserAttributes {
     phone: number;
     admin?: boolean;
     accountConfirmed: boolean;
+    confirmCode?: number;
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, "ID"> {}
@@ -35,6 +36,7 @@ export class User
     public phone!: number;
     public admin?: boolean;
     public accountConfirmed!: boolean;
+    public confirmCode?: number;
 }
 
 User.init(
@@ -77,6 +79,10 @@ User.init(
             type: DataTypes.BOOLEAN,
             allowNull: false,
         },
+        confirmCode: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        }
     },
     {
         sequelize,
