@@ -1,7 +1,9 @@
 import express from "express";
 import session from "express-session";
 
-import { Sequelize } from "sequelize";
+import sqlite3 from "sqlite3";
+import sqliteStoreFactory from "express-session-sqlite";
+const SqliteStore = sqliteStoreFactory(session)
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -19,6 +21,21 @@ import { customerRoutes } from "./routes/customer";
     // setup sessions
     app.use(
         session({
+            store: new SqliteStore({
+                // Database library to use. Any library is fine as long as the API is compatible
+                // with sqlite3, such as sqlite3-offline
+                driver: sqlite3.Database,
+                // for in-memory database
+                // path: ':memory:'
+                path: './api.db',
+                // Session TTL in milliseconds
+                ttl: 1234,
+                // (optional) Session id prefix. Default is no prefix.
+                prefix: 'sess:',
+                // (optional) Adjusts the cleanup timer in milliseconds for deleting expired session rows.
+                // Default is 5 minutes.
+                // cleanupInterval: 300000
+            }),
             secret: process.env.SESSION_SECRET!,
             resave: false,
             saveUninitialized: false,
