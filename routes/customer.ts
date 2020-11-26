@@ -5,8 +5,8 @@ import { User } from "../lib/models/User";
 
 export const customerRoutes = Router();
 
-customerRoutes.route("/subscription").get((_, res) =>{
-    res.render("customer/subscription", defaultData)
+customerRoutes.route("/subscriptions").get((_, res) =>{
+    res.render("customer/subscriptions", defaultData)
 }).post(async (req, res) => {
 
 });

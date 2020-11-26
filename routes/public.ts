@@ -45,7 +45,7 @@ publicRoutes
             if (user.hash === password) {
                 loggedIn = true;
                 req.session!.user = user;
-                res.redirect("/subscriptions");
+                res.redirect("/customer");
             }
         }
 
@@ -98,11 +98,10 @@ publicRoutes
                 birthDate,
                 phone,
                 accountConfirmed: false,
+                confirmCode: await sendCode(phone)
             });
 
-            req.session!.confirmCode = await sendCode(user.phone);
-            user.confirmCode = req.session!.confirmCode;
-            await user.save();
+            req.session!.confirmCode = user.confirmCode;
             req.session!.user = user;
 
             res.redirect("/confirm");
@@ -139,7 +138,7 @@ publicRoutes
                 await user.save();
 
                 req.session!.confirmCode = null;
-                res.redirect("/subscriptions");
+                res.redirect("/customer/subscriptions");
             } else {
                 const data = {
                     ...defaultData,
