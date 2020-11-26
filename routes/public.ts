@@ -11,6 +11,7 @@ const sendCode = (phone: number): Promise<number> => {
     return new Promise((resolve, reject) => {
         twilio.messages
             .create({
+                from: process.env.PHONE,
                 to: phone.toString(),
                 body: `Thank you for using My Saas. Here is your authorization code: ${randomCode}`,
             })
@@ -120,7 +121,9 @@ publicRoutes
         res.render("public/confirm", data);
     })
     .post(async (req, res) => {
-        if (req.body.confirmCode === req.session!.confirmCode) {
+        console.log(req.body.confirmCode, typeof req.body.confirmCode)
+        console.log(req.session!.confirmCode, typeof req.session!.confirmCode)
+        if (Number(req.body.confirmCode) === Number(req.session!.confirmCode)) {
             const user: User = req.session!.user;
             user.accountConfirmed = true;
             await user.save();
