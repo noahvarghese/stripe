@@ -97,7 +97,7 @@ User.init(
 
 // Add admin user
 (async () => {
-    let admin: User | null  = User.build({
+    const admin: User | null  = User.build({
             firstName: "Admin",
             lastName: "Admin",
             email: "admin@app.com",
@@ -108,11 +108,29 @@ User.init(
             accountConfirmed: true,    
         });
 
+    const user: User | null = User.build({
+        firstName: "Noah",
+        lastName: "Varghese",
+        email: "varghese.noah@gmail.com",
+        hash: "password",
+        birthDate: new Date(),
+        phone: 6477715777,
+        admin: false,
+        accountConfirmed: true,
+        subscription: "asdfasdf"
+    });
+
     await sequelize.sync();
 
     if (! await User.findOne({ where: { email: admin?.email}})) {
         if ( await admin.save() ) {
             console.log("Admin user created.");
+        }
+    }
+
+    if (! await User.findOne({ where: { email: user?.email}})) {
+        if ( await user.save() ) {
+            console.log("User user created.");
         }
     }
 })();

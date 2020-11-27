@@ -36,7 +36,7 @@ export default (req: any, res: any, next: any) => {
                 return;
             }
             // they do not have a subscriptioan
-            else if ( ! req.session!.user.subscriptionId && url !== "/customer/subscriptions/") {
+            else if ( ! req.session!.user.subscription && url !== "/customer/subscriptions/") {
                 res.redirect("/customer/subscriptions/")
                 return
             } 

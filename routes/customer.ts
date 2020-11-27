@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { User } from "../lib/models/User";
 
 import defaultData from "./DefaultData";
 
@@ -12,6 +13,13 @@ customerRoutes.route("/subscriptions/").get((_, res) =>{
     res.send(message);
 });
 
-customerRoutes.get("/", (_, res) => {
-    res.render("customer/index", defaultData)
+customerRoutes.get("/", async (req, res) => {
+    const user = await User.findOne({ where: { email: req.session!.user.email }});
+
+    const data = {
+        ...defaultData,
+        user
+    };
+
+    res.render("customer/index", data)
 })
