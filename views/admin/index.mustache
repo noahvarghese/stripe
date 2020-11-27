@@ -1,2 +1,27 @@
+{{> header }}
+<div class="container">
+{{> adminNav }}
+<div class="content">
 <h1>Admin</h1>
 <h2>Index</h2>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Subscription</th>
+        <th>Phone</th>
+        <th>Birth Date</th>
+    <tr>
+    {{ #users }}
+    <tr>
+        <td>{{ firsName }} {{ lastName }}</td>
+        <td>{{ email }}</td>
+        <td>{{ subscription }}</td>
+        <td>{{ phone }}</td>
+        <td>{{ birthDate }}</td>
+    </tr>
+    {{ /users }}
+</table>
+</div>
+</div>
+{{> footer }}

@@ -16,7 +16,7 @@ const sendCode = (phone: number): Promise<number> => {
                 body: `Thank you for using My Saas. Here is your authorization code: ${randomCode}`,
             })
             .then((message) => {
-                console.log(message.sid);
+                console.log("Message sent:", message.sid);
                 resolve(randomCode);
             })
             .catch((err) => {
@@ -31,7 +31,7 @@ publicRoutes.get("/", (_, res) => {
 });
 
 publicRoutes
-    .route("/login")
+    .route("/login/")
     .get((_, res) => {
         res.render("public/login", defaultData);
     })
@@ -64,7 +64,7 @@ publicRoutes
     });
 
 publicRoutes
-    .route("/register")
+    .route("/register/")
     .get((_, res) => {
         res.render("public/register", defaultData);
     })
@@ -94,21 +94,46 @@ publicRoutes
                 phone.trim(),
             ].includes("" || null || undefined)
         ) {
-            const user = await User.create({
-                firstName,
-                lastName,
-                email,
-                hash: password,
-                birthDate,
-                phone,
-                accountConfirmed: false,
-                confirmCode: await sendCode(phone)
-            });
+            const existingUser: User | null = await User.findOne({ where: { email }});
+            
+            if ( ! existingUser ) {
+                const user = await User.create({
+                    firstName,
+                    lastName,
+                    email,
+                    hash: password,
+                    birthDate,
+                    phone,
+                    accountConfirmed: false,
+                    confirmCode: await sendCode(phone)
+                });
 
-            req.session!.confirmCode = user.confirmCode;
-            req.session!.user = user;
+                req.session!.confirmCode = user.confirmCode;
+                req.session!.user = user;
 
-            res.redirect("/confirm");
+                res.redirect("/confirm/");
+            }
+            else {
+                if ( !existingUser.accountConfirmed ) {
+                    const confirmCode = await sendCode(existingUser.phone);
+                    existingUser.confirmCode = confirmCode;
+                    await existingUser.save();
+
+
+                    req.session!.confirmCode = existingUser.confirmCode;
+                    req.session!.user = existingUser;
+
+                    res.redirect("/confirm/");
+                }
+                else {
+                    const data = {
+                        ...defaultData,
+                        error: "Email is already registered, please login."
+                    };
+                    
+                    res.render("public/register", data);
+                }
+            }
         } else {
             const data = {
                 ...defaultData,
@@ -120,8 +145,8 @@ publicRoutes
     });
 
 publicRoutes
-    .route("/confirm")
-    .get((req, res) => {
+    .route("/confirm/")
+    .get((_, res) => {
         const data = {
             ...defaultData
         };
@@ -129,21 +154,22 @@ publicRoutes
         res.render("public/confirm", data);
     })
     .post(async (req, res) => {
-
         if (Number(req.body.confirmCode) === Number(req.session!.confirmCode)) {
             const user = await User.findOne({where: {email: req.session!.user.email }});
 
             if ( user ) {
                 user.accountConfirmed = true;
                 user.confirmCode = undefined;
-                await user.save();
+                console.log("Saving:", await user.save());
+                // need to overwrite user stored in session as it has been updated
+                req.session!.user = user;
 
                 req.session!.confirmCode = null;
 
                 if ( (req.session!.user as User).admin ) {
                     res.redirect("/admin/")
                 } else {
-                    res.redirect("/customer/subscriptions");
+                    res.redirect("/customer/subscriptions/");
                 }
             } else {
                 const data = {
@@ -163,7 +189,7 @@ publicRoutes
         }
     });
 
-publicRoutes.route("/sendCode")
+publicRoutes.route("/sendCode/")
 .get((_, res) => {
     res.render("public/sendCode", defaultData);
 }).post( async (req, res) => {
@@ -171,21 +197,28 @@ publicRoutes.route("/sendCode")
     const { email } = req.body;
     console.log("Email:", email)
 
-    const user = 
-        req.session!.user ? 
-            req.session!.user as User : 
-            await User.findOne({ where: { email }})!;
+    const user = await User.findOne({ where: { email }});
 
     if ( user ) {
-        user.confirmCode = await sendCode(req.session!.user.phone);
-        user.accountConfirmed ? user.accountConfirmed = false : null;
+        user.confirmCode = await sendCode(user.phone);
+        
+        if ( user.accountConfirmed ) {
+            user.accountConfirmed = false;
+        }
 
         req.session!.confirmCode = user.confirmCode;
-        user.save();
-        res.redirect("/confirm")
+        await user.save();
+        req.session!.user = user;
+        res.redirect("/confirm/");
+        return;
     } else {
         data.error = "Unable to send code";
     }
 
-    res.render("/confirm", data);
+    res.render("public/sendCode/", data);
 });
+
+publicRoutes.get("/logout/", (req, res) => {
+    delete req.session!.user;
+    res.redirect("/");
+})

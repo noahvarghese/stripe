@@ -59,19 +59,16 @@ import { User } from "./lib/models/User";
     );
     app.set("view engine", "mustache");
     app.set("views", __dirname + "/views");
-    let sessions: any[] = [];
-    await (new sqlite3.Database("api.db", (err) => console.error(err))).each("SELECT 8 FROM sessions", (err, row) => {
-                sessions.push(row);
-            });
-    // Setup routes
+    
+    // routes
     app.use("/", publicRoutes);
     app.use("/customer", customerRoutes);
     app.use("/admin", adminRoutes);
-    app.get("/debug", async (req, res) => {
-        res.send(JSON.stringify({
-            users: await User.findAll(),
-            sessions
-        }))
+
+    // static files (css/js/etc)
+    app.get(/^(.+)$/, (req,res) => {
+        console.log("static file request: " + req.params[0]);
+        res.sendFile(__dirname + req.params[0]);
     });
 
     const port = 3000;
