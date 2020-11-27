@@ -1,5 +1,6 @@
-{{> header}}
-    <h1>My Saas</h1>
+{{> header}} 
+<div class="welcome">   
+<h1>My Saas</h1>
     <div>
         <h2>Confirmation Code</h2>
         <form method="POST" action="{{permalink}}/confirm/">
@@ -10,5 +11,6 @@
             <span class="error">{{ error }}</span>
             {{ /error}}
         </form>
+    </div>
     </div>
 {{> footer}}

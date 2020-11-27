@@ -1,4 +1,5 @@
 {{> header }}
+<div class="welcome">
 <h1>Send Code</h1>
 <form method="POST" action="{{ permalink }}/sendCode/">
     <input type="email" name="email" placeholder="email"/>
@@ -7,4 +8,5 @@
     <span>{{ error }}</span>
     {{ /error }}
 </form>
+</div>
 {{> footer }}

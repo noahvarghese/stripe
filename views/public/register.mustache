@@ -1,4 +1,5 @@
 {{> header}}
+<div class="welcome">
 <h1>Register</h1>
 <form method="POST" action="{{ loginLink }}" autofill="on">
     <input type="text" placeholder="first name" name="firstName" aria-label="first name"/>
@@ -11,4 +12,5 @@
     <span>Have an account? <a href="{{ permalink }}/login">Login</a></span>
     <input type="submit" value="Register" />
 </form>
+</div>
 {{> footer}}
