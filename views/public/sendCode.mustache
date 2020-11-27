@@ -1,0 +1,10 @@
+{{> header }}
+<h1>Send Code</h1>
+<form method="POST" action="{{ permalink }}/sendCode">
+    <input type="email" name="email" placeholder="email"/>
+    <input type="submit" value="Send Code" />
+    {{ #error }}
+    <span>{{ error }}</span>
+    {{ /error }}
+</form>
+{{> footer }}

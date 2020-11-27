@@ -1,7 +1,6 @@
 import { Router } from "express";
 
-import defaultData from "./defaultData";
-import { User } from "../lib/models/User";
+import defaultData from "./DefaultData";
 
 export const customerRoutes = Router();
 

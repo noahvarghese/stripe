@@ -6,6 +6,7 @@
             <input type="text" name="confirmCode" aria-label="confirm code" placeholder="confirm code" />
             <input type="submit" value="Confirm" />
             {{ #error }}
+            <span><a href="{{ permalink }}/sendCode">Resend Code</a></span>
             <span class="error">{{ error }}</span>
             {{ /error}}
         </form>

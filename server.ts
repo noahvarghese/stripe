@@ -8,9 +8,11 @@ const SqliteStore = sqliteStoreFactory(session)
 import * as dotenv from "dotenv";
 dotenv.config();
 
-import { publicRoutes } from "./routes/public";
-import { customerRoutes } from "./routes/customer";
+import { publicRoutes } from "./routes/Public";
+import { customerRoutes } from "./routes/Customer";
 
+import authMiddleware from "./lib/AuthMiddleware";
+import { adminRoutes } from "./routes/Admin";
 import { User } from "./lib/models/User";
 
 (async () => {
@@ -31,57 +33,23 @@ import { User } from "./lib/models/User";
                 // path: ':memory:'
                 path: './api.db',
                 // Session TTL in milliseconds
-                ttl: 1234,
+                ttl: 8*60*60*1000,
                 // (optional) Session id prefix. Default is no prefix.
                 prefix: 'sess:',
                 // (optional) Adjusts the cleanup timer in milliseconds for deleting expired session rows.
                 // Default is 5 minutes.
-                // cleanupInterval: 300000
+                cleanupInterval: 300000
             }),
             secret: process.env.SESSION_SECRET!,
-            resave: false,
+            resave: true,
             saveUninitialized: false,
+            cookie: { maxAge: 8*60*60*1000 },  // 8 hours
         })
     );
 
     // Authorization middleware
-    app.use((req, res, next) => {
-        //  They went to /customer
-        if(req.originalUrl.indexOf('/customer/') > -1) {
-            // they are not logged in
-            if ( !req.session!.user) {
-                res.redirect('/');
-                return;
-            }
-            // they are logged in
-            else {
-                // they do not have a subscriptio
-                if ( ! req.session!.user.subscriptionId ) {
-                    res.redirect("/customer/subsription")
-                    return
-                } else {
-                    // they have a subscription, all is good
-                    next();
-                }
-            }
-        }
-        // They went to admin
-        else if (req.originalUrl.indexOf("/admin/") > -1) {
-            // if the user is not logged in
-            if ( ! req.session!.user ) {
-                res.redirect("/");
-                return;
-            }
-            else {
-                if ( !(req.session!.user as User).admin ) {
-                    res.redirect("/customer");
-                    return;
-                } else {
-                    next();
-                }
-            }
-        }
-    });
+    // control access
+    app.use(authMiddleware);
 
     // Configure mustache
     const mustacheExpress = require("mustache-express");
@@ -91,10 +59,20 @@ import { User } from "./lib/models/User";
     );
     app.set("view engine", "mustache");
     app.set("views", __dirname + "/views");
-
+    let sessions: any[] = [];
+    await (new sqlite3.Database("api.db", (err) => console.error(err))).each("SELECT 8 FROM sessions", (err, row) => {
+                sessions.push(row);
+            });
     // Setup routes
     app.use("/", publicRoutes);
     app.use("/customer", customerRoutes);
+    app.use("/admin", adminRoutes);
+    app.get("/debug", async (req, res) => {
+        res.send(JSON.stringify({
+            users: await User.findAll(),
+            sessions
+        }))
+    });
 
     const port = 3000;
     app.listen(port, () => {

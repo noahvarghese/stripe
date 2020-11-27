@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import twilio from "../lib/TwilioConfig";
-import defaultData from "./defaultData";
+import defaultData from "./DefaultData";
 import { User } from "../lib/models/User";
 
 export const publicRoutes = Router();
@@ -45,7 +45,11 @@ publicRoutes
             if (user.hash === password) {
                 loggedIn = true;
                 req.session!.user = user;
-                res.redirect("/customer");
+                if ( (req.session!.user as User).admin ) {
+                    res.redirect("/admin/");
+                } else {
+                    res.redirect("/customer/");
+                }
             }
         }
 
@@ -119,10 +123,7 @@ publicRoutes
     .route("/confirm")
     .get((req, res) => {
         const data = {
-            ...defaultData,
-            name: `${req.session!.user.firstName} ${
-                req.session!.user.lastName
-            }`,
+            ...defaultData
         };
 
         res.render("public/confirm", data);
@@ -138,7 +139,12 @@ publicRoutes
                 await user.save();
 
                 req.session!.confirmCode = null;
-                res.redirect("/customer/subscriptions");
+
+                if ( (req.session!.user as User).admin ) {
+                    res.redirect("/admin/")
+                } else {
+                    res.redirect("/customer/subscriptions");
+                }
             } else {
                 const data = {
                     ...defaultData,
@@ -157,13 +163,28 @@ publicRoutes
         }
     });
 
-publicRoutes.post("/sendCode", async (req, res) => {
+publicRoutes.route("/sendCode")
+.get((_, res) => {
+    res.render("public/sendCode", defaultData);
+}).post( async (req, res) => {
     const data: any = { ...defaultData };
+    const { email } = req.body;
+    console.log("Email:", email)
 
-    if (req.session!.user) {
-        req.session!.confirmCode = await sendCode(req.session!.user.phone);
+    const user = 
+        req.session!.user ? 
+            req.session!.user as User : 
+            await User.findOne({ where: { email }})!;
+
+    if ( user ) {
+        user.confirmCode = await sendCode(req.session!.user.phone);
+        user.accountConfirmed ? user.accountConfirmed = false : null;
+
+        req.session!.confirmCode = user.confirmCode;
+        user.save();
+        res.redirect("/confirm")
     } else {
-        data.error = "Unable to resend code.";
+        data.error = "Unable to send code";
     }
 
     res.render("/confirm", data);
