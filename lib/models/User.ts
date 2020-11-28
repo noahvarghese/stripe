@@ -19,7 +19,8 @@ interface UserAttributes {
     admin?: boolean;
     accountConfirmed: boolean;
     confirmCode?: number;
-    subscription?: string;
+    subscriptionId?: string;
+    customerId?: string;
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, "ID"> {}
@@ -38,7 +39,8 @@ export class User
     public admin?: boolean;
     public accountConfirmed!: boolean;
     public confirmCode?: number;
-    public subscription?: string;
+    public subscriptionId?: string;
+    public customerId?: string;
 }
 
 User.init(
@@ -85,7 +87,11 @@ User.init(
             type: DataTypes.INTEGER,
             allowNull: true
         },
-        subscription: {
+        subscriptionId: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        customerId: {
             type: DataTypes.STRING,
             allowNull: true
         }
@@ -117,7 +123,6 @@ User.init(
         phone: 6477715777,
         admin: false,
         accountConfirmed: true,
-        subscription: "asdfasdf"
     });
 
     await sequelize.sync();

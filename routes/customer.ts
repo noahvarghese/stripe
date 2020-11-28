@@ -6,7 +6,11 @@ import defaultData from "./DefaultData";
 export const customerRoutes = Router();
 
 customerRoutes.route("/subscriptions/").get((_, res) =>{
-    res.render("customer/subscriptions", defaultData)
+    const data = {
+        ...defaultData,
+        stripeKey: process.env.STRIPE_KEY
+    }
+    res.render("customer/subscriptions", data)
 }).post(async (req, res) => {
     const message = "POST not implemented";
     console.log(message);

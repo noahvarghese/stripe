@@ -7,7 +7,7 @@ import { User } from "../lib/models/User";
 export const publicRoutes = Router();
 
 const sendCode = (phone: number): Promise<number> => {
-    const randomCode = Math.floor(Math.random() * 999) + 0o1;
+    const randomCode = Math.floor(Math.random() * 900000) + 99999;
     return new Promise((resolve, reject) => {
         twilio.messages
             .create({

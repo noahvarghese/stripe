@@ -13,8 +13,16 @@
         <p>{{ description }}</p>
     </div>
     {{ /plans }}
+    <div id="cardElement"></div>
 <div>
 </div>
 </div>
+
+<script>
+    const stripe = new Stripe({{ stripeKey }});
+    const elements = stripe.elements();
+    const cardElement = elemenets.create("card")
+    cardElement.mount("#cardElement")
+</script>
 
 {{> footer}}
