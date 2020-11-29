@@ -4,24 +4,29 @@
 <div class="content">
 <h1>Admin</h1>
 <h2>Index</h2>
-<table>
-    <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Subscription</th>
-        <th>Phone</th>
-        <th>Birth Date</th>
-    <tr>
-    {{ #users }}
-    <tr>
-        <td>{{ firsName }} {{ lastName }}</td>
-        <td>{{ email }}</td>
-        <td>{{ subscription }}</td>
-        <td>{{ phone }}</td>
-        <td>{{ birthDate }}</td>
-    </tr>
-    {{ /users }}
-</table>
+    <table>
+        <thead>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Plan</th>
+            <th>Start date</th>
+            <th>Price</th>
+            <th>Account created date</th>
+            <th>Customer ID</th>
+        </thead>
+        
+        {{#customers}}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ email }}</td>
+            <td>{{ subscription_plan_name }}</td>
+            <td>{{#format_date}}{{subscription_plan_start_date}}{{/format_date}}</td>
+            <td>${{ subscription_plan_price }}</td>
+            <td>{{#format_date}}{{created}}{{/format_date}}</td>
+            <td>{{ id }}</td>
+        </tr>
+        {{/customers}}
+    </table>
 </div>
 </div>
 {{> footer }}

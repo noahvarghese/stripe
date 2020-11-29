@@ -30,14 +30,18 @@ form > * {
     margin-top: 1rem;
 }
 
-input {
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 1rem;
+}
+
+input, .submit {
     font-size: 1.2rem;
     padding: 0.25rem;
     border: 2px solid black;
     border-radius: 5px;
 }
 
-input[type="submit"] {
+input[type="submit"], .submit {
     color: #2b9e9b;
     font-weight: bolder;
     padding: 0.5rem 0.75rem;
@@ -102,4 +106,93 @@ input[type="submit"] {
 .content > * {
     text-align: left;
     width: 100%;
+}
+
+.plan {
+    position: relative;
+    color: black;
+    border: none;
+    max-width: 20rem;
+    width: 40%;
+    height: 20rem;
+    padding: 1rem; 
+    border-radius: 5px;
+    /* Add shadows to create the "card" effect */
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+}
+
+.plan:hover {
+    border: 5px solid #d3d3d3;
+}
+
+.plan.selected {
+    border: 5px solid #2b9e9b;
+}
+
+.payment.callout {
+    max-width: 30rem;
+    width: 100%;
+}
+
+.payment.callout > * {
+    margin-top: 1rem;
+}
+
+
+.StripeElement {
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 3px;
+    padding: 6px;
+}
+  
+#card-errors {
+    font-size: 14px;
+    color: rgb(200, 0, 0);
+    border: 1px solid rgb(200, 0, 0);
+    padding: 4px;
+    margin: 10px 0 4px 0;
+}
+  
+#card-errors:empty {
+    display: none;
+}
+
+.plans {
+    margin-top: 5rem;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+    align-content: space-around;
+}
+
+.plan-label {
+    position: absolute;
+    bottom: 100px;
+    margin-left: 0.5rem;
+    margin-right: 0.75rem;
+}
+
+.plan-select-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+
+
+    font-size: 1.1rem;
+    padding: 0.25rem;
+    border: 1px solid black;
+    border-radius: 5px;
+
+    color: #2b9e9b;
+    font-weight: bold;
+    padding: 0.5rem 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.payment.callout {
+    margin-top: 5rem;
+    margin-bottom: 2rem;
 }

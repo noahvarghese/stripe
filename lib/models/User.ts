@@ -1,15 +1,8 @@
-import { Sequelize, Model, DataTypes, Optional } from "sequelize";
-import { config } from "../SQLiteConfig";
-
-const sequelize = new Sequelize(
-    config.storage!,
-    config.username!,
-    config.password,
-    config
-);
+import { Model, DataTypes, Optional } from "sequelize";
+import sequelize from "../SQLiteConfig";
 
 interface UserAttributes {
-    ID: number;
+    ID?: number;
     firstName: string;
     lastName: string;
     email: string;
@@ -23,13 +16,11 @@ interface UserAttributes {
     customerId?: string;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, "ID"> {}
-
 export class User
-    extends Model<UserAttributes, UserCreationAttributes>
+    extends Model<UserAttributes>
     implements UserAttributes {
     // set initital values so that keys can be obtained
-    public ID!: number;
+    public ID?: number;
     public firstName!: string;
     public lastName!: string;
     public email!: string;

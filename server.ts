@@ -13,7 +13,6 @@ import { customerRoutes } from "./routes/Customer";
 
 import authMiddleware from "./lib/AuthMiddleware";
 import { adminRoutes } from "./routes/Admin";
-import { User } from "./lib/models/User";
 
 (async () => {
     const app = express();
@@ -41,7 +40,7 @@ import { User } from "./lib/models/User";
                 cleanupInterval: 300000
             }),
             secret: process.env.SESSION_SECRET!,
-            resave: true,
+            resave: false,
             saveUninitialized: false,
             cookie: { maxAge: 8*60*60*1000 },  // 8 hours
         })

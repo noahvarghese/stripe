@@ -6,23 +6,141 @@
 
 <div>
     <h2>Subscriptions</h2>
-    {{ #plans }}
-    <div id="{{ id }}">
-        <h3>{{ name }}</h3>
-        <span>{{ price }}</span>
-        <p>{{ description }}</p>
+    
+{{#has_active_plan}}
+<div class="plan-notice">
+  You currently have a plan setup.
+</div>
+{{/has_active_plan}}
+
+{{^has_active_plan}}
+<div class="plan-notice">
+  You don't have a plan, so you are being redirected here.
+</div>
+{{/has_active_plan}}
+
+<form id="paymentForm">
+    <div class="plans">
+        {{ #plans }}
+        <div id="{{ ID }}" class="plan" data-plan-id="{{ name }}">
+            <div>
+                <h3>{{ name }} - ${{ price }}</h3>
+                <p class="plan-label">{{ label }}</p>
+            </div>
+            <div class="plan-select text-center">
+                <button type="button" id="plan_select_{{ name }}" class="plan-select-button button">Select</button>
+            </div>
+        </div>
+        {{ /plans }}
+        <input type="hidden" id="selectedPlan" name="selectedPlan" value=""/>
+        <input type="hidden" id="stripeToken" name="stripeToken" value=""/>
     </div>
-    {{ /plans }}
+
+
+  <div class="payment callout">
+
+    <label for="cardElement">
+        Credit or debit card
+    </label>
+
     <div id="cardElement"></div>
-<div>
+
+    <div id="cardErrors" role="alert"></div>
+
+    </div>
+
+    <div class="actions">
+        <button type="button" id="pay" class="button submit">Pay</button>
+    </div>
+</form>
+</div>
 </div>
 </div>
 
 <script>
-    const stripe = new Stripe({{ stripeKey }});
-    const elements = stripe.elements();
-    const cardElement = elemenets.create("card")
-    cardElement.mount("#cardElement")
+    
+    let stripe, elements, cardElement;
+    
+    const init = () => {
+        stripe = Stripe("{{ stripeKey }}");
+        elements = stripe.elements();
+        cardElement = elements.create("card");
+        cardElement.mount("#cardElement");
+    }
+
+    const changePlan = () => {
+        const plans = Array.from(document.getElementsByClassName("plan"));
+
+        plans.forEach(plan => {
+            plan.addEventListener("click", (event) => {
+
+                plans.forEach(plan2 => {
+                    plan2.classList.remove("selected");
+                });
+
+                const eventPath = event.composedPath();
+
+                for ( let i = 0; i < eventPath.length; i++ ) {
+                    const classList = Array.from(eventPath[i].classList);
+                    if ( classList.includes("plan") ) {
+                        eventPath[i].classList.add("selected")
+                    }                    
+                }
+
+                const selectedId = event.target.data.plan-id;
+                document.getElementById("selectedPlan").value = selectedId;
+            });
+        });
+    }
+
+    const submitForm = () => {
+        // Prevent form submission if payment not filled out
+        document.getElementById("paymentForm")
+            .addEventListener("submit", (e) => {
+                if ( ! document.getElementById("stripeToken").value ) {
+                    e.preventDefault();   
+                }
+            });
+    }
+
+    const clickPay = () => {
+        document.getElementById("pay").addEventListener("click", () => {
+            const selectedPlan = document.getElementById("selectedPlan").value;
+
+            if ( ! selectedPlan ) {
+                document.getElementById("cardErrors").value = "A plan must be selected";
+                // maybe use event.prevent default???
+                return false;
+            }
+
+            stripe.createToken(cardElement)
+                .then(result => {
+                    if ( result.error ) {
+                        document.getElementById("cardErrors").value = result.error.message;
+                    }
+                    else {
+                        createToken(result.token);
+                    }
+                });
+        });
+    };
+
+    const createToken = (token) => {
+        document.getElementById("stripeToken").value = token;
+        document.getElementById("paymentForm").submit();
+    };
+
+    const initEvents = () => {
+        changePlan();
+        submitForm();
+        clickPay();
+    }
+
+    window.addEventListener("load", () => {
+        init();
+        initEvents();
+    });
+
 </script>
 
 {{> footer}}
