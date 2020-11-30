@@ -5,14 +5,17 @@
 <h1>Customer</h1>
 <h2>Dashboard</h2>
 {{ #user }}
-<form method="POST" action="{{ loginLink }}">
-    <input type="text" placeholder="first name" name="firstName" aria-label="first name" value="{{ firstName }}" readonly/>
-    <input type="text" placeholder="last name" name="lastName" aria-label="last name" value="{{ lastName }}" readonly/>
-    <input type="email" placeholder="email" name="email" aria-label="email" value="{{ email }}" readonly/>
-    <input type="password" placeholder="password" name="password" aria-label="password" value="{{ hash }}" readonly/>
-    <input type="date" placeholder="birth date" name="birthDate" aria-label="birth date" value="{{ birthDate }}" readonly/>
-    <input type="phone" placeholder="cell phone" name="phone" aria-label="cell number" value="{{ phone }}" readonly/>
-    {{! <input type="submit" value="Register" disabled/> }}
+<form method="POST" action="{{ permalink }}/customer/">
+    <input type="text" placeholder="first name" name="firstName" aria-label="first name" value="{{ firstName }}" />
+    <input type="text" placeholder="last name" name="lastName" aria-label="last name" value="{{ lastName }}" />
+    <input type="email" placeholder="email" name="email" aria-label="email" value="{{ email }}" />
+    <input type="password" placeholder="old password" name="oldPassword" ariad-label="old password" />
+    <input type="password" placeholder="new password" name="newPassword" aria-label="new password" />
+    <input type="password" placeholder="confirm new password" name="confirmNewPassword" aria-label="confirm new password" />
+    <input type="date" placeholder="birth date" name="birthDate" aria-label="birth date" value="{{ birthDate }}" />
+    <input type="phone" placeholder="cell phone" name="phone" aria-label="cell number" value="{{ phone }}" />
+    <input type="submit" value="Update" />
+    <input type="reset" value="Clear" class="submit" />
 </form>
 {{ /user }}
 </div>

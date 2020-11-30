@@ -74,13 +74,69 @@ customerRoutes.route("/subscriptions/").get(async (req, res) =>{
     });
 });
 
-customerRoutes.get("/", async (req, res) => {
-    const user = await User.findOne({ where: { email: req.session!.user.email }});
+customerRoutes.route("/")
+    .get(async (req, res) => {
+        const user = await User.findOne({ where: { email: req.session!.user.email }});
 
-    const data = {
-        ...defaultData,
-        user
-    };
+        const data = {
+            ...defaultData,
+            user
+        };
 
-    res.render("customer/index", data)
-})
+        res.render("customer/index", data)
+    })
+    .post(async (req, res) => {
+        const {
+            email,
+            oldPassword,
+            newPassword,
+            confirmNewPassword,
+            birthDate,
+            phoneNumber
+        } = req.body;
+
+        const data: any = {
+            ...defaultData,
+        };
+
+        const user = await User.findOne({ where: { email: req.session!.user.email }});
+        data.user = user;
+
+        if ( user ) {
+            console.log(`Password: ${oldPassword === user.hash}`)
+            console.log(oldPassword, user.hash)
+            if ( email === user.email ) {
+                if ( oldPassword === user.hash ) {
+                    if ( newPassword === confirmNewPassword ) {
+                        console.log("password is correct and matching")
+                        if ( newPassword.trim() !== "" ) {
+                            user.hash = newPassword;
+                        }
+
+                        if ( birthDate !== user.birthDate ) {
+                            user.birthDate = new Date(birthDate);
+                        }
+
+                        if ( phoneNumber !== user.phone ) {
+                            user.phone = phoneNumber;
+                        }
+
+                        await user.save();
+                        req.session!.user = user;
+                    }
+                }
+            }
+        }
+
+        // do this here because it MUST be set
+        // and the details may change depnding on the values entered
+        data.user = user;
+
+        if ( ! user ) {
+            data.errors = "Invalid user";
+        }
+
+        res.render("customer/index", data);
+
+
+    });
