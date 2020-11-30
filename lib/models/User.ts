@@ -14,6 +14,7 @@ interface UserAttributes {
     confirmCode?: number;
     subscriptionId?: string;
     customerId?: string;
+    planId?: number;
 }
 
 export class User
@@ -32,6 +33,7 @@ export class User
     public confirmCode?: number;
     public subscriptionId?: string;
     public customerId?: string;
+    public planId?: number;
 }
 
 User.init(
@@ -85,6 +87,10 @@ User.init(
         customerId: {
             type: DataTypes.STRING,
             allowNull: true
+        },
+        planId: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
         }
     },
     {

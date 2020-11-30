@@ -22,7 +22,7 @@
 <form id="paymentForm" method="POST" action="{{ permalink }}/customer/subscriptions/">
     <div class="plans">
         {{ #plans }}
-        <div id="{{ ID }}" class="plan" data-plan-id="{{ name }}">
+        <div id="{{ ID }}" class="plan {{ #selected }}selected{{ /selected }}" data-plan-id="{{ name }}">
             <div>
                 <h3>{{ name }} - ${{ price }}</h3>
                 <p class="plan-label">{{ label }}</p>

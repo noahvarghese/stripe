@@ -8,6 +8,7 @@ interface PlanAttributes {
     price: number;
     productId: string;
     priceId: string;
+    selected?: boolean;
 }
 
 export class Plan
