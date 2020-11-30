@@ -20,9 +20,9 @@
             <td>{{ name }}</td>
             <td>{{ email }}</td>
             <td>{{ subscription_plan_name }}</td>
-            <td>{{#format_date}}{{subscription_plan_start_date}}{{/format_date}}</td>
+            <td>{{subscription_plan_start_date}}</td>
             <td>${{ subscription_plan_price }}</td>
-            <td>{{#format_date}}{{created}}{{/format_date}}</td>
+            <td>{{created}}</td>
             <td>{{ id }}</td>
         </tr>
         {{/customers}}

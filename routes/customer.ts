@@ -24,12 +24,13 @@ customerRoutes.route("/subscriptions/").get(async (_, res) =>{
 }).post(async (req, res) => {
         
     //  Find the Plan, retrieve the product id
-    let plan = (await Plan.findOne({ where: { productId: req.body.selected_plan}}))!;
+    let plan = (await Plan.findOne({ where: { name: req.body.selectedPlan}}))!;
+    console.log(req.body.stripeToken);
 
     //  Should check to see if the customer already exists.
     //  If so, get the customer.id instead of creating a new one.
     const customer = stripe.customers.create({
-        source: req.body.stripe_token,
+        source: JSON.parse(req.body.stripeToken).id,
         email: req.session!.user.email,
         name: req.session!.user.name,
         phone: req.session!.user.phone,
@@ -37,6 +38,7 @@ customerRoutes.route("/subscriptions/").get(async (_, res) =>{
 
     customer.then(async (customer) => {
         const user = (await User.findOne({ where: { ID: req.session!.user.ID}}))!;
+        console.log(user);
         user.customerId = customer.id;
         await user.save();
 

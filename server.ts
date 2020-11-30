@@ -1,12 +1,18 @@
 import express from "express";
 import session from "express-session";
+import fs from "fs";
 
 import sqlite3 from "sqlite3";
 import sqliteStoreFactory from "express-session-sqlite";
-const SqliteStore = sqliteStoreFactory(session)
+const SqliteStore = sqliteStoreFactory(session);
 
 import * as dotenv from "dotenv";
 dotenv.config();
+
+import Stripe from "stripe";
+const stripe = new Stripe(process.env.STRIPE_SECRET!, {
+    apiVersion: "2020-08-27"
+});
 
 import { publicRoutes } from "./routes/Public";
 import { customerRoutes } from "./routes/Customer";
@@ -74,4 +80,23 @@ import { adminRoutes } from "./routes/Admin";
     app.listen(port, () => {
         console.log(`Server listening on port: ${port}`);
     });
+
+    (async () => {
+        const startClean = false;
+
+        if(!startClean) return;
+
+        fs.unlinkSync("./api.db");
+
+        //  Wipe Stripe customers
+        //  Note that there is a rate limit on API requests, so if you have a 
+        //  bunch of customers it probably won't remove them all.
+
+        stripe.customers.list({}).then(async (customers) => {
+            customers.data.forEach((element) => {
+            stripe.customers.del(element.id);
+            });
+            console.log('All customers removed from Stripe');
+        });
+    })();
 })();

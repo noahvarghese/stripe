@@ -19,7 +19,7 @@
 </div>
 {{/has_active_plan}}
 
-<form id="paymentForm">
+<form id="paymentForm" method="POST" action="{{ permalink }}/customer/subscriptions/">
     <div class="plans">
         {{ #plans }}
         <div id="{{ ID }}" class="plan" data-plan-id="{{ name }}">
@@ -79,16 +79,20 @@
                 });
 
                 const eventPath = event.composedPath();
+                let planDiv;
 
                 for ( let i = 0; i < eventPath.length; i++ ) {
-                    const classList = Array.from(eventPath[i].classList);
-                    if ( classList.includes("plan") ) {
-                        eventPath[i].classList.add("selected")
-                    }                    
+                    if ( eventPath[i].classList ) {
+                        const classList = Array.from(eventPath[i].classList);
+                        if ( classList.includes("plan") ) {
+                            planDiv = eventPath[i];
+                            eventPath[i].classList.add("selected")
+                        }           
+                    }         
                 }
 
-                const selectedId = event.target.data.plan-id;
-                document.getElementById("selectedPlan").value = selectedId;
+                const selectedPlanId = planDiv.dataset.planId;
+                document.getElementById("selectedPlan").value = selectedPlanId;
             });
         });
     }
@@ -97,7 +101,8 @@
         // Prevent form submission if payment not filled out
         document.getElementById("paymentForm")
             .addEventListener("submit", (e) => {
-                if ( ! document.getElementById("stripeToken").value ) {
+                const stripeToken = document.getElementById("stripeToken").value;
+                if ( ! stripeToken ) {
                     e.preventDefault();   
                 }
             });
@@ -109,12 +114,11 @@
 
             if ( ! selectedPlan ) {
                 document.getElementById("cardErrors").value = "A plan must be selected";
-                // maybe use event.prevent default???
                 return false;
             }
 
             stripe.createToken(cardElement)
-                .then(result => {
+                .then((result) => {
                     if ( result.error ) {
                         document.getElementById("cardErrors").value = result.error.message;
                     }
@@ -126,7 +130,7 @@
     };
 
     const createToken = (token) => {
-        document.getElementById("stripeToken").value = token;
+        document.getElementById("stripeToken").value = JSON.stringify(token);
         document.getElementById("paymentForm").submit();
     };
 
